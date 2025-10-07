@@ -3,23 +3,24 @@ clear;
 close all;
 
 %loading in data
-rawData = load("2025_09_23_001_Torque_Base_8mNm.txt");
+rawData = load("Base_torque6mNm");
 
 %assigning columns
-time = rawData(1:700,1).*(10^-3); %convert from ms to s
-commanded_torque = rawData(1:700,2); %baseline to compare
-angular_velocity = rawData(1:700,3).*(-1); %multiplied by -1
-current = rawData(1:700,4);
-
-%finding instantanous angular acceleration
-angular_acceleration = angular_velocity ./ time; %rad/s^2
+time = rawData(1:701,1).*(10^-3); %convert from ms to s
+commanded_torque = rawData(1:701,2).*(10^-3); %baseline to compare %Nm
+angular_velocity = rawData(1:701,3).*((2*pi)/60); %multiplied by -1, then converted to rad/s
+current = rawData(1:701,4); %units of amps
 
 %finding torque using current since it is mentioned in 3.3a
-torque_const = 25.5; %mNm/A, given in the experimental procedures
-torque = (current*torque_const); %mNm
+torque_const = 25.5*(10^-3); %Nm/A, given in the experimental procedures
+torque = (current*torque_const); %Nm
 
-%Equation for angular momentum
-MoI = torque .* angular_acceleration; %Nm/s^2
+%finding average angular acceleration
+angular_velocity_smooth = sgolayfilt(angular_velocity, 3, 51);
+angular_acceleration_smooth = gradient(angular_velocity_smooth, time);
+
+%moment of inertia
+MoI_smooth = torque / angular_acceleration_smooth; %mNms^2
 
 %graphing time vs calculated torque
 nexttile
@@ -33,7 +34,14 @@ hold off
 
 %graphing angular velocity vs time
 nexttile
-plot(time,angular_velocity.*-1);
+plot(time(101:601),angular_velocity(101:601).*-1);
 ylabel("Angular Velocity (rad/s)");
 xlabel("Time (s)")
 title("Angular Velocity vs Time");
+
+%graphing MoI vs time
+nexttile
+plot(time,MoI_smooth);
+ylabel("MoI (Nms^2)");
+xlabel("Time (s)");
+title("MoI vs Time");
