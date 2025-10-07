@@ -6,17 +6,34 @@ close all;
 rawData = load("2025_09_23_001_Torque_Base_8mNm.txt");
 
 %assigning columns
-time = rawData(:,1);
-commanded_torque = rawData(:,2); %honestly don't understand point if using current and torque constant
-angular_velocity = rawData(:,3);
-current = rawData(:,4);
+time = rawData(1:700,1).*(10^-3); %convert from ms to s
+commanded_torque = rawData(1:700,2); %baseline to compare
+angular_velocity = rawData(1:700,3).*(-1); %multiplied by -1
+current = rawData(1:700,4);
 
 %finding instantanous angular acceleration
 angular_acceleration = angular_velocity ./ time; %rad/s^2
 
 %finding torque using current since it is mentioned in 3.3a
 torque_const = 25.5; %mNm/A, given in the experimental procedures
-torque = (current*torque_const)*(10^3) ; %Nm
+torque = (current*torque_const); %mNm
 
 %Equation for angular momentum
 MoI = torque .* angular_acceleration; %Nm/s^2
+
+%graphing time vs calculated torque
+nexttile
+hold on
+plot(time,torque)
+plot(time,commanded_torque) %baseline
+ylabel("Torque (Nm)");
+xlabel("Time (s)");
+title("Torque vs. Time");
+hold off
+
+%graphing angular velocity vs time
+nexttile
+plot(time,angular_velocity.*-1);
+ylabel("Angular Velocity (rad/s)");
+xlabel("Time (s)")
+title("Angular Velocity vs Time");
