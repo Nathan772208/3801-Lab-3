@@ -1,0 +1,22 @@
+clc;
+clear;
+close all;
+
+%loading in data
+rawData = load("2025_09_23_001_Torque_Base_8mNm.txt");
+
+%assigning columns
+time = rawData(:,1);
+commanded_torque = rawData(:,2); %honestly don't understand point if using current and torque constant
+angular_velocity = rawData(:,3);
+current = rawData(:,4);
+
+%finding instantanous angular acceleration
+angular_acceleration = angular_velocity ./ time; %rad/s^2
+
+%finding torque using current since it is mentioned in 3.3a
+torque_const = 25.5; %mNm/A, given in the experimental procedures
+torque = (current*torque_const)*(10^3) ; %Nm
+
+%Equation for angular momentum
+MoI = torque .* angular_acceleration; %Nm/s^2
